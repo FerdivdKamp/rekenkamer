@@ -1,0 +1,25 @@
+# Python virtual environments
+.venv/
+venv/
+
+# Python tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local configuration and generated files
+.env
+*.log
+dist/
+build/
+*.egg-info/
+
+# TODO Include later
+*.xlsx
