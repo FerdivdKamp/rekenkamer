@@ -82,7 +82,7 @@ by SHA-256 checksum, so identical re-uploads reuse the original immutable raw
 file. Each upload still receives its own ID, validation report, and row in the
 persistent SQLite metadata database (`uploads/metadata/uploads.sqlite3` by
 default). Metadata includes the original filename, optional
-`source_organisation` multipart field, checksum, schema version, timestamps,
+`source_organisation` multipart field, checksum, schema ID and version, timestamps,
 validation status, and raw/report locations. Set `REKENKAMER_METADATA_DIRECTORY`
 to store that database elsewhere.
 
@@ -94,13 +94,38 @@ starting the server:
 .\.venv\Scripts\Activate.ps1
 ```
 
-Set `REKENKAMER_SCHEMA_PATH` to the validation schema to use. The packaged
-development schema is deliberately empty, so configure a service schema before
-using the API for meaningful validation. `REKENKAMER_UPLOAD_DIRECTORY` and
-`REKENKAMER_MAX_UPLOAD_BYTES` (default: `10485760`) are optional.
+Set `REKENKAMER_SCHEMA_REGISTRY_PATH` to an approved schema registry. The
+packaged development registry is deliberately empty, so configure a registry
+with a meaningful workbook definition before using the API. A registry has a
+stable schema `id`, `version`, ISO `effective_from`/optional `effective_to`,
+`owner`, and a `definition` using the familiar `version` and `sheets` format.
+It also defines one default selection for each `source_type`:
+
+```json
+{
+  "schemas": [{
+    "id": "financial-audit-workbook",
+    "version": "2026-09",
+    "effective_from": "2026-09-01",
+    "effective_to": null,
+    "owner": "Financial Audit",
+    "definition": {"version": "2026-09", "sheets": {"Data": {"columns": {"Name": "string"}}}}
+  }],
+  "defaults": {"financial-audit": {"id": "financial-audit-workbook", "version": "2026-09"}}
+}
+```
+
+Invalid registry definitions prevent the API from starting. `POST /uploads`
+accepts optional `schema_id` and `schema_version` multipart fields together to
+select an explicit version. If both are omitted, it uses the documented default
+for `source_type` (which defaults to `default`). The API exposes `GET /schemas`
+and `GET /schemas/{id}/versions/{version}` for approved versions. Reports and
+upload metadata retain the selected schema ID and version.
+`REKENKAMER_UPLOAD_DIRECTORY` and `REKENKAMER_MAX_UPLOAD_BYTES` (default:
+`10485760`) are optional.
 
 ```powershell
-$env:REKENKAMER_SCHEMA_PATH = ".\schema.json"
+$env:REKENKAMER_SCHEMA_REGISTRY_PATH = ".\schema-registry.json"
 python -m uvicorn rekenkamer_pipeline.api:app --reload
 ```
 

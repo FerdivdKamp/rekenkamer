@@ -23,18 +23,28 @@ def _issue(code: str, message: str, **details: Any) -> dict[str, Any]:
 
 def _normalise_columns(columns: Any, sheet_name: str) -> dict[str, str]:
     if isinstance(columns, Mapping):
-        result = {
-            str(name): str(definition.get("type", "any"))
-            if isinstance(definition, Mapping)
-            else str(definition)
-            for name, definition in columns.items()
-        }
+        result = {}
+        for name, definition in columns.items():
+            if not isinstance(name, str) or not name.strip():
+                raise SchemaError(f"Sheet '{sheet_name}' has an invalid column name.")
+            column_type = definition.get("type", "any") if isinstance(definition, Mapping) else definition
+            if not isinstance(column_type, str) or not column_type.strip():
+                raise SchemaError(f"Column '{name}' in sheet '{sheet_name}' has an invalid type.")
+            result[name] = column_type
     elif isinstance(columns, list):
         result = {}
         for definition in columns:
             if not isinstance(definition, Mapping) or "name" not in definition:
                 raise SchemaError(f"Sheet '{sheet_name}' has a column without a name.")
-            result[str(definition["name"])] = str(definition.get("type", "any"))
+            name = definition["name"]
+            column_type = definition.get("type", "any")
+            if not isinstance(name, str) or not name.strip():
+                raise SchemaError(f"Sheet '{sheet_name}' has an invalid column name.")
+            if not isinstance(column_type, str) or not column_type.strip():
+                raise SchemaError(f"Column '{name}' in sheet '{sheet_name}' has an invalid type.")
+            if name in result:
+                raise SchemaError(f"Sheet '{sheet_name}' defines column '{name}' twice.")
+            result[name] = column_type
     else:
         raise SchemaError(f"Sheet '{sheet_name}' must define columns as an object or list.")
     return result
@@ -45,19 +55,30 @@ def _normalise_sheets(schema: Mapping[str, Any]) -> dict[str, dict[str, str]]:
     if isinstance(sheets, Mapping):
         result = {}
         for name, definition in sheets.items():
-            if not isinstance(definition, Mapping):
+            if not isinstance(name, str) or not name.strip() or not isinstance(definition, Mapping):
                 raise SchemaError(f"Sheet '{name}' definition must be an object.")
-            result[str(name)] = _normalise_columns(definition.get("columns"), str(name))
+            result[name] = _normalise_columns(definition.get("columns"), name)
         return result
     if isinstance(sheets, list):
         result = {}
         for definition in sheets:
             if not isinstance(definition, Mapping) or "name" not in definition:
                 raise SchemaError("Each sheet definition must contain a name.")
-            name = str(definition["name"])
+            name = definition["name"]
+            if not isinstance(name, str) or not name.strip():
+                raise SchemaError("Each sheet definition must contain a non-empty name.")
+            if name in result:
+                raise SchemaError(f"Schema defines sheet '{name}' twice.")
             result[name] = _normalise_columns(definition.get("columns"), name)
         return result
     raise SchemaError("Schema must contain a 'sheets' object or list.")
+
+
+def validate_schema_definition(schema: Mapping[str, Any]) -> None:
+    """Reject malformed definitions before they are admitted to a registry."""
+    if not isinstance(schema.get("version"), str) or not schema["version"].strip():
+        raise SchemaError("Schema must contain a non-empty 'version' string.")
+    _normalise_sheets(schema)
 
 
 def load_schema(schema_path: Path) -> tuple[dict[str, dict[str, str]], str]:
@@ -71,6 +92,7 @@ def load_schema(schema_path: Path) -> tuple[dict[str, dict[str, str]], str]:
         raise SchemaError(f"Schema file is not valid JSON: {schema_path}") from error
     if not isinstance(schema, Mapping):
         raise SchemaError("Schema root must be a JSON object.")
+    validate_schema_definition(schema)
     identifier = str(schema.get("version") or schema.get("schema_version") or "")
     if not identifier:
         identifier = f"sha256:{hashlib.sha256(contents).hexdigest()}"
@@ -103,9 +125,23 @@ def _type_matches(expected: str, actual: str) -> bool:
     ) or actual == "empty"
 
 
+def validate_workbook_definition(workbook_path: Path, schema: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate a workbook against an already approved schema definition."""
+    validate_schema_definition(schema)
+    sheets = _normalise_sheets(schema)
+    schema_identifier = str(schema["version"])
+    return _validate_workbook(workbook_path, sheets, schema_identifier)
+
+
 def validate_workbook(workbook_path: Path, schema_path: Path) -> dict[str, Any]:
     """Validate one workbook and return a JSON-serialisable report."""
     sheets, schema_identifier = load_schema(schema_path)
+    return _validate_workbook(workbook_path, sheets, schema_identifier)
+
+
+def _validate_workbook(
+    workbook_path: Path, sheets: Mapping[str, Mapping[str, str]], schema_identifier: str
+) -> dict[str, Any]:
     report: dict[str, Any] = {
         "source_filename": workbook_path.name,
         "status": "passed",

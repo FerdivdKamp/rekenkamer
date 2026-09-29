@@ -25,6 +25,7 @@ class MetadataStore:
                     original_filename TEXT NOT NULL,
                     source_organisation TEXT,
                     checksum TEXT NOT NULL,
+                    schema_id TEXT NOT NULL DEFAULT '',
                     schema_version TEXT NOT NULL,
                     received_at TEXT NOT NULL,
                     processed_at TEXT NOT NULL,
@@ -35,6 +36,11 @@ class MetadataStore:
                 """
             )
             connection.execute("CREATE INDEX IF NOT EXISTS uploads_checksum ON uploads(checksum)")
+            columns = {row[1] for row in connection.execute("PRAGMA table_info(uploads)")}
+            if "schema_id" not in columns:
+                connection.execute(
+                    "ALTER TABLE uploads ADD COLUMN schema_id TEXT NOT NULL DEFAULT ''"
+                )
 
     def record_upload(self, metadata: Mapping[str, Any]) -> None:
         """Persist one completed upload's metadata."""
@@ -43,11 +49,11 @@ class MetadataStore:
                 """
                 INSERT INTO uploads (
                     upload_id, original_filename, source_organisation, checksum,
-                    schema_version, received_at, processed_at, validation_status,
+                    schema_id, schema_version, received_at, processed_at, validation_status,
                     raw_file_location, report_location
                 ) VALUES (
                     :upload_id, :original_filename, :source_organisation, :checksum,
-                    :schema_version, :received_at, :processed_at, :validation_status,
+                    :schema_id, :schema_version, :received_at, :processed_at, :validation_status,
                     :raw_file_location, :report_location
                 )
                 """,

@@ -13,11 +13,12 @@ from uuid import uuid4
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile, status
 
 from .metadata import MetadataStore
-from .validation import SchemaError, validate_workbook
+from .schema_registry import SchemaRegistry, SchemaRegistryError
+from .validation import SchemaError, validate_workbook_definition
 
 DEFAULT_MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 CHUNK_SIZE = 64 * 1024
-DEFAULT_SCHEMA_PATH = Path(__file__).with_name("service_schema.json")
+DEFAULT_SCHEMA_REGISTRY_PATH = Path(__file__).with_name("schema_registry.json")
 
 
 def _path_from_environment(name: str, default: Path) -> Path:
@@ -43,15 +44,15 @@ def create_app(
     *,
     upload_directory: Path | None = None,
     metadata_directory: Path | None = None,
-    schema_path: Path | None = None,
+    schema_registry_path: Path | None = None,
     max_upload_bytes: int | None = None,
 ) -> FastAPI:
     """Create the API application with local-development configuration."""
     configured_upload_directory = upload_directory or _path_from_environment(
         "REKENKAMER_UPLOAD_DIRECTORY", Path("uploads")
     )
-    configured_schema_path = schema_path or _path_from_environment(
-        "REKENKAMER_SCHEMA_PATH", DEFAULT_SCHEMA_PATH
+    configured_schema_registry_path = schema_registry_path or _path_from_environment(
+        "REKENKAMER_SCHEMA_REGISTRY_PATH", DEFAULT_SCHEMA_REGISTRY_PATH
     )
     configured_metadata_directory = metadata_directory or _path_from_environment(
         "REKENKAMER_METADATA_DIRECTORY", configured_upload_directory / "metadata"
@@ -61,6 +62,7 @@ def create_app(
     )
     if configured_max_upload_bytes <= 0:
         raise ValueError("max_upload_bytes must be greater than zero.")
+    schema_registry = SchemaRegistry.from_path(configured_schema_registry_path)
 
     app = FastAPI(title="Rekenkamer data pipeline API")
     metadata_store = MetadataStore(configured_metadata_directory / "uploads.sqlite3")
@@ -72,10 +74,29 @@ def create_app(
         """Provide a configuration-free deployment health response."""
         return {"status": "ok"}
 
+    @app.get("/schemas")
+    def list_schemas() -> dict[str, object]:
+        """List all approved schema versions, without duplicating definitions."""
+        return {"schemas": schema_registry.list()}
+
+    @app.get("/schemas/{schema_id}/versions/{schema_version}")
+    @app.get("/schemas/{schema_id}/{schema_version}")
+    def get_schema(schema_id: str, schema_version: str) -> dict[str, object]:
+        """Retrieve one approved schema definition by stable ID and version."""
+        try:
+            return schema_registry.get(schema_id, schema_version).public_data(
+                include_definition=True
+            )
+        except SchemaRegistryError as error:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
+
     @app.post("/uploads", status_code=status.HTTP_201_CREATED)
     async def upload_workbook(
         file: Annotated[UploadFile, File(...)],
         source_organisation: Annotated[str | None, Form()] = None,
+        source_type: Annotated[str, Form()] = "default",
+        schema_id: Annotated[str | None, Form()] = None,
+        schema_version: Annotated[str | None, Form()] = None,
     ) -> dict[str, object]:
         """Store a workbook and synchronously return its validation report."""
         supplied_filename = file.filename or ""
@@ -84,6 +105,13 @@ def create_app(
                 status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
                 detail="Only .xlsx files are supported.",
             )
+
+        try:
+            selected_schema = schema_registry.select(source_type, schema_id, schema_version)
+        except SchemaRegistryError as error:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(error)
+            ) from error
 
         upload_id = uuid4().hex
         raw_directory.mkdir(parents=True, exist_ok=True)
@@ -123,13 +151,15 @@ def create_app(
             temporary_destination.unlink(missing_ok=True)
 
         try:
-            report = validate_workbook(destination, configured_schema_path)
+            report = validate_workbook_definition(destination, selected_schema.definition)
         except (OSError, SchemaError) as error:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Validation service is not configured correctly.",
             ) from error
         report["source_filename"] = supplied_filename
+        report["schema_id"] = selected_schema.schema_id
+        report["schema_version"] = selected_schema.version
         report_directory.mkdir(parents=True, exist_ok=True)
         report_location = report_directory / f"{upload_id}.validation.json"
         report_location.write_text(
@@ -143,6 +173,7 @@ def create_app(
                 "original_filename": supplied_filename,
                 "source_organisation": source_organisation,
                 "checksum": f"sha256:{content_checksum}",
+                "schema_id": selected_schema.schema_id,
                 "schema_version": report["schema_version"],
                 "received_at": report["timestamp"],
                 "processed_at": processed_at,
