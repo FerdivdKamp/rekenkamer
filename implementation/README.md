@@ -120,3 +120,38 @@ A successful upload returns `201 Created` with `upload_id` and `report`; a
 structurally invalid or unreadable workbook still returns `201` with a failed
 validation report. Missing files, non-`.xlsx` files, and uploads larger than
 the configured limit return `4xx`.
+
+### Inspect persisted uploads
+
+After testing an upload, inspect the metadata database from the
+`implementation` directory. Python includes SQLite support, so this does not
+require installing a separate database client:
+
+```powershell
+python
+```
+
+```python
+import sqlite3
+
+connection = sqlite3.connect("uploads/metadata/uploads.sqlite3")
+connection.row_factory = sqlite3.Row
+
+for row in connection.execute("""
+    SELECT upload_id, original_filename, validation_status, received_at,
+           raw_file_location, report_location
+    FROM uploads
+    ORDER BY received_at DESC
+"""):
+    print(dict(row))
+
+connection.close()
+```
+
+The `raw_file_location` and `report_location` values point to the stored
+workbook and its JSON validation report, respectively. If the optional
+`sqlite3` command-line tool is installed, the equivalent query is:
+
+```powershell
+sqlite3 .\uploads\metadata\uploads.sqlite3 "SELECT upload_id, original_filename, validation_status, received_at FROM uploads ORDER BY received_at DESC;"
+```

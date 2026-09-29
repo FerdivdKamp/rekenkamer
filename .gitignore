@@ -21,4 +21,7 @@ dist/
 build/
 *.egg-info/
 
-implementation/uploads/*.xlsx
+# Runtime upload artifacts
+implementation/uploads/metadata/*.sqlite3
+implementation/uploads/raw/*.xlsx
+implementation/uploads/reports/*.validation.json
