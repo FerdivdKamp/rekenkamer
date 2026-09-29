@@ -1,4 +1,5 @@
 import json
+import sqlite3
 from io import BytesIO
 from pathlib import Path
 
@@ -62,8 +63,22 @@ def test_upload_valid_workbook_returns_report_and_generated_storage_name(tmp_pat
     assert len(body["upload_id"]) == 32
     assert body["report"]["source_filename"] == "../../client-name.xlsx"
     assert body["report"]["status"] == "passed"
-    stored_files = list((tmp_path / "uploads").glob("*.xlsx"))
-    assert [path.name for path in stored_files] == [f"{body['upload_id']}.xlsx"]
+    stored_files = list((tmp_path / "uploads" / "raw").glob("*.xlsx"))
+    assert len(stored_files) == 1
+
+    database = tmp_path / "uploads" / "metadata" / "uploads.sqlite3"
+    with sqlite3.connect(database) as connection:
+        record = connection.execute(
+            "SELECT * FROM uploads WHERE upload_id = ?", (body["upload_id"],)
+        ).fetchone()
+    assert record is not None
+    assert record[1] == "../../client-name.xlsx"
+    assert record[2] is None
+    assert record[3].startswith("sha256:")
+    assert record[4] == "api-test-v1"
+    assert record[7] == "passed"
+    assert Path(record[8]) == stored_files[0]
+    assert Path(record[9]).is_file()
 
 
 def test_invalid_readable_workbook_returns_failed_report(tmp_path: Path) -> None:
@@ -78,6 +93,45 @@ def test_invalid_readable_workbook_returns_failed_report(tmp_path: Path) -> None
         "missing_column",
         "unexpected_column",
     }
+    database = tmp_path / "uploads" / "metadata" / "uploads.sqlite3"
+    with sqlite3.connect(database) as connection:
+        validation_status = connection.execute(
+            "SELECT validation_status FROM uploads WHERE upload_id = ?",
+            (response.json()["upload_id"],),
+        ).fetchone()
+    assert validation_status == ("failed",)
+
+
+def test_unreadable_and_duplicate_uploads_are_persisted_without_replacing_raw_file(
+    tmp_path: Path,
+) -> None:
+    client = make_client(tmp_path)
+    duplicate_bytes = workbook_bytes([["Name", "Amount"], ["Finance", 12]])
+
+    first = client.post(
+        "/uploads",
+        files={"file": ("first.xlsx", duplicate_bytes)},
+        data={"source_organisation": "Ministry of Finance"},
+    )
+    second = client.post("/uploads", files={"file": ("second.xlsx", duplicate_bytes)})
+    unreadable = client.post(
+        "/uploads", files={"file": ("broken.xlsx", b"not an Excel workbook")}
+    )
+
+    assert first.status_code == second.status_code == unreadable.status_code == 201
+    assert unreadable.json()["report"]["status"] == "failed"
+    database = tmp_path / "uploads" / "metadata" / "uploads.sqlite3"
+    with sqlite3.connect(database) as connection:
+        records = connection.execute(
+            "SELECT original_filename, source_organisation, checksum, validation_status, "
+            "raw_file_location FROM uploads ORDER BY rowid"
+        ).fetchall()
+    assert len(records) == 3
+    assert records[0][1] == "Ministry of Finance"
+    assert records[0][2] == records[1][2]
+    assert records[0][4] == records[1][4]
+    assert records[2][3] == "failed"
+    assert len(list((tmp_path / "uploads" / "raw").glob("*.xlsx"))) == 2
 
 
 def test_missing_or_non_excel_file_returns_client_error(tmp_path: Path) -> None:

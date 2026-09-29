@@ -77,8 +77,14 @@ rekenkamer-pipeline validate .\data\one.xlsx .\data\two.xlsx --schema .\schema.j
 ## Run the upload API
 
 The development API accepts one `.xlsx` multipart upload at `POST /uploads` and
-validates it synchronously. It writes uploads under `uploads/` by default using
-a generated ID, never the client-supplied filename as a file path.
+validates it synchronously. It stores raw workbook bytes under `uploads/raw/`
+by SHA-256 checksum, so identical re-uploads reuse the original immutable raw
+file. Each upload still receives its own ID, validation report, and row in the
+persistent SQLite metadata database (`uploads/metadata/uploads.sqlite3` by
+default). Metadata includes the original filename, optional
+`source_organisation` multipart field, checksum, schema version, timestamps,
+validation status, and raw/report locations. Set `REKENKAMER_METADATA_DIRECTORY`
+to store that database elsewhere.
 
 First complete [Setup](#setup) in this `implementation` directory. In every
 new PowerShell session, activate the project's virtual environment before
