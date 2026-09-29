@@ -21,6 +21,11 @@ rekenkamer/
 
 See the README in each workspace for its setup commands.
 
+## Architecture
+
+The target architecture and its implementation assumptions are recorded in
+[ADR 0001: Target architecture for workbook ingestion and analysis](docs/adr/0001-target-architecture.md).
+
 ## Agentic AI example: LocalForge
 
 [LocalForge](https://github.com/FerdivdKamp/local-forge) is a separate project
