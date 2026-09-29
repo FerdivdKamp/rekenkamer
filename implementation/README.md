@@ -77,8 +77,14 @@ rekenkamer-pipeline validate .\data\one.xlsx .\data\two.xlsx --schema .\schema.j
 ## Run the upload API
 
 The development API accepts one `.xlsx` multipart upload at `POST /uploads` and
-validates it synchronously. It writes uploads under `uploads/` by default using
-a generated ID, never the client-supplied filename as a file path.
+validates it synchronously. It stores raw workbook bytes under `uploads/raw/`
+by SHA-256 checksum, so identical re-uploads reuse the original immutable raw
+file. Each upload still receives its own ID, validation report, and row in the
+persistent SQLite metadata database (`uploads/metadata/uploads.sqlite3` by
+default). Metadata includes the original filename, optional
+`source_organisation` multipart field, checksum, schema version, timestamps,
+validation status, and raw/report locations. Set `REKENKAMER_METADATA_DIRECTORY`
+to store that database elsewhere.
 
 First complete [Setup](#setup) in this `implementation` directory. In every
 new PowerShell session, activate the project's virtual environment before
@@ -114,3 +120,38 @@ A successful upload returns `201 Created` with `upload_id` and `report`; a
 structurally invalid or unreadable workbook still returns `201` with a failed
 validation report. Missing files, non-`.xlsx` files, and uploads larger than
 the configured limit return `4xx`.
+
+### Inspect persisted uploads
+
+After testing an upload, inspect the metadata database from the
+`implementation` directory. Python includes SQLite support, so this does not
+require installing a separate database client:
+
+```powershell
+python
+```
+
+```python
+import sqlite3
+
+connection = sqlite3.connect("uploads/metadata/uploads.sqlite3")
+connection.row_factory = sqlite3.Row
+
+for row in connection.execute("""
+    SELECT upload_id, original_filename, validation_status, received_at,
+           raw_file_location, report_location
+    FROM uploads
+    ORDER BY received_at DESC
+"""):
+    print(dict(row))
+
+connection.close()
+```
+
+The `raw_file_location` and `report_location` values point to the stored
+workbook and its JSON validation report, respectively. If the optional
+`sqlite3` command-line tool is installed, the equivalent query is:
+
+```powershell
+sqlite3 .\uploads\metadata\uploads.sqlite3 "SELECT upload_id, original_filename, validation_status, received_at FROM uploads ORDER BY received_at DESC;"
+```
