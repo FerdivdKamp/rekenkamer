@@ -21,6 +21,19 @@ rekenkamer/
 
 See the README in each workspace for its setup commands.
 
+## Agentic AI example: LocalForge
+
+[LocalForge](https://github.com/FerdivdKamp/local-forge) is a separate project
+that I set up as an example of applying agentic AI to software delivery. It
+uses GitHub issues as the work backlog, selects issues marked ready for AI work,
+and prepares an isolated coding task for a local AI coding agent. Successful
+work is delivered on a branch and reviewed through a pull request; the agent
+does not merge directly into the main branch.
+
+It is not part of this pipeline's runtime architecture. Instead, it illustrates
+how generative AI can be introduced with practical controls around credentials,
+task state, test results, and human review.
+
 
 
 ## Original vacancy
