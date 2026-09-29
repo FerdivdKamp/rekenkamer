@@ -1,120 +1,103 @@
 {
-  "Infoblad": {
-    "columns": {
-      "Soort meest waarschijnlijke fout en zekerheid": "object",
-      "Toelichting": "object",
-      "Prioriteit": "float64"
+  "version": "1",
+  "sheets": {
+    "Infoblad": {
+      "columns": {
+        "Soort meest waarschijnlijke fout en zekerheid": "string",
+        "Toelichting": "string",
+        "Prioriteit": "number"
+      }
     },
-    "shape": [
-      8,
-      3
-    ]
-  },
-  "RM_uitgaven": {
-    "columns": {
-      "hoofdstuk nr": "object",
-      "hoofdstuk": "object",
-      "artikel nr": "float64",
-      "artikel": "object",
-      "soort artikel": "object",
-      "verantwoord bedrag": "float64",
-      "steekproef": "object",
-      "meest waarschijnlijke fout": "float64",
-      "meest waarschijnlijke onzekerheid": "float64",
-      "meest waarschijnlijke fout en onzekerheid": "int64",
-      "basis onnauwkeurigheid": "float64",
-      "nauwkeurigheids verval": "object",
-      "maximale fout en onzekerheid": "int64",
-      "niet kwantificeerbare bevindingen": "float64",
-      "% meest waarschijnlijke fout en onzekerheid": "object",
-      "meest waarschijnlijke fout en onzekerheid: niet naleven budgetrecht (vereisten uit de comptabiliteitswet)": "object",
-      "meest waarschijnlijke fout en onzekerheid: inkopen - niet naleven aanbestedingswet- en regelgeving": "object",
-      "meest waarschijnlijke fout en onzekerheid: inkopen - ontbreken prestatieverklaring": "object",
-      "meest waarschijnlijke fout en onzekerheid: staatssteun": "object",
-      "meest waarschijnlijke fout en onzekerheid: ontoereikendheid in M&O-beleid": "object",
-      "meest waarschijnlijke fout en onzekerheid: niet naleven van de regeling financieel beheer van het rijk": "object",
-      "meest waarschijnlijke fout en onzekerheid: onrechtmatigheden in ministerie specifieke wet- en regelgeving of het niet naleven van overige comptabele wet- en regelgeving": "object",
-      "optelling soort meest waarschijnlijke fout en onzekerheid": "int64",
-      "opmerkingen": "object"
+    "RM_uitgaven": {
+      "columns": {
+        "hoofdstuk nr": "string",
+        "hoofdstuk": "string",
+        "artikel nr": "number",
+        "artikel": "string",
+        "soort artikel": "string",
+        "verantwoord bedrag": "number",
+        "steekproef": "string",
+        "meest waarschijnlijke fout": "number",
+        "meest waarschijnlijke onzekerheid": "number",
+        "meest waarschijnlijke fout en onzekerheid": "integer",
+        "basis onnauwkeurigheid": "number",
+        "nauwkeurigheids verval": "string",
+        "maximale fout en onzekerheid": "integer",
+        "niet kwantificeerbare bevindingen": "number",
+        "% meest waarschijnlijke fout en onzekerheid": "string",
+        "meest waarschijnlijke fout en onzekerheid: niet naleven budgetrecht (vereisten uit de comptabiliteitswet)": "string",
+        "meest waarschijnlijke fout en onzekerheid: inkopen - niet naleven aanbestedingswet- en regelgeving": "string",
+        "meest waarschijnlijke fout en onzekerheid: inkopen - ontbreken prestatieverklaring": "string",
+        "meest waarschijnlijke fout en onzekerheid: staatssteun": "string",
+        "meest waarschijnlijke fout en onzekerheid: ontoereikendheid in M&O-beleid": "string",
+        "meest waarschijnlijke fout en onzekerheid: niet naleven van de regeling financieel beheer van het rijk": "string",
+        "meest waarschijnlijke fout en onzekerheid: onrechtmatigheden in ministerie specifieke wet- en regelgeving of het niet naleven van overige comptabele wet- en regelgeving": "string",
+        "optelling soort meest waarschijnlijke fout en onzekerheid": "integer",
+        "opmerkingen": "string"
+      }
     },
-    "shape": [
-      10,
-      24
-    ]
-  },
-  "RM_ontvangsten": {
-    "columns": {
-      "hoofdstuk nr": "object",
-      "hoofdstuk": "object",
-      "artikel nr": "float64",
-      "artikel": "object",
-      "soort artikel": "object",
-      "verantwoord bedrag": "float64",
-      "steekproef": "object",
-      "meest waarschijnlijke fout": "float64",
-      "meest waarschijnlijke onzekerheid": "float64",
-      "meest waarschijnlijke fout en onzekerheid": "int64",
-      "basis onnauwkeurigheid": "float64",
-      "nauwkeurigheids verval": "float64",
-      "maximale fout en onzekerheid": "int64",
-      "niet kwantificeerbare bevindingen": "object",
-      "% meest waarschijnlijke fout en onzekerheid": "object",
-      "meest waarschijnlijke fout en onzekerheid: niet naleven budgetrecht (vereisten uit de comptabiliteitswet)": "object",
-      "meest waarschijnlijke fout en onzekerheid: inkopen - niet naleven aanbestedingswet- en regelgeving": "object",
-      "meest waarschijnlijke fout en onzekerheid: inkopen - ontbreken prestatieverklaring": "object",
-      "meest waarschijnlijke fout en onzekerheid: staatssteun": "object",
-      "meest waarschijnlijke fout en onzekerheid: ontoereikendheid in M&O-beleid": "object",
-      "meest waarschijnlijke fout en onzekerheid: niet naleven van de regeling financieel beheer van het rijk": "object",
-      "meest waarschijnlijke fout en onzekerheid: onrechtmatigheden in ministerie specifieke wet- en regelgeving of het niet naleven van overige comptabele wet- en regelgeving": "object",
-      "optelling soort meest waarschijnlijke fout en onzekerheid": "int64",
-      "opmerkingen": "float64"
+    "RM_ontvangsten": {
+      "columns": {
+        "hoofdstuk nr": "string",
+        "hoofdstuk": "string",
+        "artikel nr": "number",
+        "artikel": "string",
+        "soort artikel": "string",
+        "verantwoord bedrag": "number",
+        "steekproef": "string",
+        "meest waarschijnlijke fout": "number",
+        "meest waarschijnlijke onzekerheid": "number",
+        "meest waarschijnlijke fout en onzekerheid": "integer",
+        "basis onnauwkeurigheid": "number",
+        "nauwkeurigheids verval": "number",
+        "maximale fout en onzekerheid": "integer",
+        "niet kwantificeerbare bevindingen": "string",
+        "% meest waarschijnlijke fout en onzekerheid": "string",
+        "meest waarschijnlijke fout en onzekerheid: niet naleven budgetrecht (vereisten uit de comptabiliteitswet)": "string",
+        "meest waarschijnlijke fout en onzekerheid: inkopen - niet naleven aanbestedingswet- en regelgeving": "string",
+        "meest waarschijnlijke fout en onzekerheid: inkopen - ontbreken prestatieverklaring": "string",
+        "meest waarschijnlijke fout en onzekerheid: staatssteun": "string",
+        "meest waarschijnlijke fout en onzekerheid: ontoereikendheid in M&O-beleid": "string",
+        "meest waarschijnlijke fout en onzekerheid: niet naleven van de regeling financieel beheer van het rijk": "string",
+        "meest waarschijnlijke fout en onzekerheid: onrechtmatigheden in ministerie specifieke wet- en regelgeving of het niet naleven van overige comptabele wet- en regelgeving": "string",
+        "optelling soort meest waarschijnlijke fout en onzekerheid": "integer",
+        "opmerkingen": "number"
+      }
     },
-    "shape": [
-      10,
-      24
-    ]
-  },
-  "RM_uitgaven_en_ontvangsten": {
-    "columns": {
-      "hoofdstuk nr": "object",
-      "hoofdstuk": "object",
-      "artikel nr": "float64",
-      "artikel": "object",
-      "soort artikel": "object",
-      "verantwoord bedrag": "float64",
-      "tolerantie grens": "float64",
-      "steekproef": "object",
-      "meest waarschijnlijke fout": "int64",
-      "meest waarschijnlijke onzekerheid": "int64",
-      "meest waarschijnlijke fout en onzekerheid": "int64",
-      "basis onnauwkeurigheid": "int64",
-      "nauwkeurigheids verval": "int64",
-      "maximale fout en onzekerheid": "int64",
-      "tolerantie overschreden": "object",
-      "niet kwantificeerbare bevindingen": "object",
-      "% meest waarschijnlijke fout en onzekerheid": "object",
-      "meest waarschijnlijke fout en onzekerheid: niet naleven budgetrecht (vereisten uit de comptabiliteitswet)": "object",
-      "meest waarschijnlijke fout en onzekerheid: inkopen - niet naleven aanbestedingswet- en regelgeving": "object",
-      "meest waarschijnlijke fout en onzekerheid: inkopen - ontbreken prestatieverklaring": "object",
-      "meest waarschijnlijke fout en onzekerheid: staatssteun": "object",
-      "meest waarschijnlijke fout en onzekerheid: ontoereikendheid in M&O-beleid": "object",
-      "meest waarschijnlijke fout en onzekerheid: niet naleven van de regeling financieel beheer van het rijk": "object",
-      "meest waarschijnlijke fout en onzekerheid: onrechtmatigheden in ministerie specifieke wet- en regelgeving of het niet naleven van overige comptabele wet- en regelgeving": "object",
-      "optelling soort meest waarschijnlijke fout en onzekerheid": "int64",
-      "opmerkingen": "float64"
+    "RM_uitgaven_en_ontvangsten": {
+      "columns": {
+        "hoofdstuk nr": "string",
+        "hoofdstuk": "string",
+        "artikel nr": "number",
+        "artikel": "string",
+        "soort artikel": "string",
+        "verantwoord bedrag": "number",
+        "tolerantie grens": "number",
+        "steekproef": "string",
+        "meest waarschijnlijke fout": "integer",
+        "meest waarschijnlijke onzekerheid": "integer",
+        "meest waarschijnlijke fout en onzekerheid": "integer",
+        "basis onnauwkeurigheid": "integer",
+        "nauwkeurigheids verval": "integer",
+        "maximale fout en onzekerheid": "integer",
+        "tolerantie overschreden": "string",
+        "niet kwantificeerbare bevindingen": "string",
+        "% meest waarschijnlijke fout en onzekerheid": "string",
+        "meest waarschijnlijke fout en onzekerheid: niet naleven budgetrecht (vereisten uit de comptabiliteitswet)": "string",
+        "meest waarschijnlijke fout en onzekerheid: inkopen - niet naleven aanbestedingswet- en regelgeving": "string",
+        "meest waarschijnlijke fout en onzekerheid: inkopen - ontbreken prestatieverklaring": "string",
+        "meest waarschijnlijke fout en onzekerheid: staatssteun": "string",
+        "meest waarschijnlijke fout en onzekerheid: ontoereikendheid in M&O-beleid": "string",
+        "meest waarschijnlijke fout en onzekerheid: niet naleven van de regeling financieel beheer van het rijk": "string",
+        "meest waarschijnlijke fout en onzekerheid: onrechtmatigheden in ministerie specifieke wet- en regelgeving of het niet naleven van overige comptabele wet- en regelgeving": "string",
+        "optelling soort meest waarschijnlijke fout en onzekerheid": "integer",
+        "opmerkingen": "number"
+      }
     },
-    "shape": [
-      10,
-      26
-    ]
-  },
-  "bereik": {
-    "columns": {
-      "ja": "object"
-    },
-    "shape": [
-      1,
-      1
-    ]
+    "bereik": {
+      "columns": {
+        "ja": "string"
+      }
+    }
   }
 }
