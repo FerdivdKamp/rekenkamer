@@ -1,0 +1,18 @@
+{
+  "schemas": [
+    {
+      "id": "development-workbook",
+      "version": "2026-09",
+      "effective_from": "2026-09-01",
+      "effective_to": null,
+      "owner": "Financial Audit",
+      "definition": {
+        "version": "2026-09",
+        "sheets": {}
+      }
+    }
+  ],
+  "defaults": {
+    "default": {"id": "development-workbook", "version": "2026-09"}
+  }
+}
